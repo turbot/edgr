@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/piquette/edgr/core/model"
 	"github.com/tdewolff/minify"
+	"github.com/turbot/edgr/core/model"
 )
 
 const (

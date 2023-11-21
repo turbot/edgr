@@ -1,6 +1,6 @@
 package database
 
-import "github.com/piquette/edgr/core/model"
+import "github.com/turbot/edgr/core/model"
 
 type (
 	// FormDao abstracts access to sec forms.

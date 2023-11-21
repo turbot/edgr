@@ -7,12 +7,12 @@ build:
     - linux
   goarch:
     - amd64
-        
+
 brew:
   github:
-    owner: piquette
+    owner: turbot
     name: homebrew-edgr
-  homepage: "https://github.com/piquette/edgr"
+  homepage: "https://github.com/turbot/edgr"
   description: "edgr is a tool for downloading and persisting SEC EDGAR filings and data"
 
   plist: |

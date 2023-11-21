@@ -2,7 +2,7 @@ package database
 
 import (
 	pg "github.com/go-pg/pg"
-	"github.com/piquette/edgr/core/model"
+	"github.com/turbot/edgr/core/model"
 )
 
 type (

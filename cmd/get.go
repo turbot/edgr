@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/piquette/edgr/core"
-	"github.com/piquette/edgr/core/model"
 	log "github.com/sirupsen/logrus"
+	"github.com/turbot/edgr/core"
+	"github.com/turbot/edgr/core/model"
 	"github.com/urfave/cli"
 )
 

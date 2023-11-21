@@ -4,7 +4,7 @@ import (
 	"time"
 
 	pg "github.com/go-pg/pg"
-	"github.com/piquette/edgr/core/model"
+	"github.com/turbot/edgr/core/model"
 )
 
 // Document is an ORM object for the `documents` table.
