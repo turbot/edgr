@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/piquette/edgr/core/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/turbot/edgr/core/model"
 )
 
 func (s *EdgrSuite) TestFilingDao() {

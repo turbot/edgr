@@ -1,4 +1,4 @@
-module github.com/piquette/edgr
+module github.com/turbot/edgr
 
 go 1.13
 

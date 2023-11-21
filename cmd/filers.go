@@ -8,8 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	"github.com/piquette/edgr/core"
-	"github.com/piquette/edgr/database"
+	"github.com/turbot/edgr/core"
+	"github.com/turbot/edgr/database"
 )
 
 var (

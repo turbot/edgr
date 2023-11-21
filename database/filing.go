@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-pg/pg"
-	"github.com/piquette/edgr/core/model"
+	"github.com/turbot/edgr/core/model"
 )
 
 // Filing is an ORM object for the `filings` table.

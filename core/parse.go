@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/piquette/edgr/core/documents"
+	"github.com/turbot/edgr/core/documents"
 
-	"github.com/piquette/edgr/core/model"
+	"github.com/turbot/edgr/core/model"
 )
 
 var (

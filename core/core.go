@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/piquette/edgr/core/model"
+	"github.com/turbot/edgr/core/model"
 	"golang.org/x/net/html/charset"
 )
 

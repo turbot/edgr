@@ -4,8 +4,8 @@ import (
 	"os"
 	"sort"
 
-	"github.com/piquette/edgr/database"
 	log "github.com/sirupsen/logrus"
+	"github.com/turbot/edgr/database"
 	"github.com/urfave/cli"
 )
 
