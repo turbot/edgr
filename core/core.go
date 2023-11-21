@@ -1,11 +1,13 @@
 package core
 
 import (
-	"encoding/csv"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -14,7 +16,7 @@ import (
 )
 
 var (
-	iexSymbolsURL = "https://api.iextrading.com/1.0/ref-data/symbols?format=csv"
+	iexSymbolsURL = "https://api.iex.cloud/v1/data/core/REF_DATA/symbols"
 	secCompanyURL = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=%s&start=0&count=1&output=atom"
 	iexCompanyURL = "https://api.iextrading.com/1.0/stock/spy/company"
 	dirRegex      = regexp.MustCompile(`<td><a href="(.*?)"><img`)
@@ -26,8 +28,22 @@ var (
 
 // Company is a simple struct for a single company.
 type Company struct {
-	Name   string
-	Symbol string
+	CIK                 string `json:"cik"`
+	Currency            string `json:"currency"`
+	Date                string `json:"date"`
+	Exchange            string `json:"exchange"`
+	ExchangeName        string `json:"exchangeName"`
+	ExchangeSegment     string `json:"exchangeSegment"`
+	ExchangeSegmentName string `json:"exchangeSegmentName"`
+	ExchangeSuffix      string `json:"exchangeSuffix"`
+	FIGI                string `json:"figi"`
+	IEXID               string `json:"iexId"`
+	IsEnabled           bool   `json:"isEnabled"`
+	LEI                 string `json:"lei"`
+	Name                string `json:"name"`
+	Region              string `json:"region"`
+	Symbol              string `json:"symbol"`
+	Type                string `json:"type"`
 }
 
 // rssFeed is the feed obj.
@@ -47,49 +63,81 @@ type secFilerInfo struct {
 
 // GetPublicCompanies returns a list of public companies.
 func GetPublicCompanies() ([]Company, error) {
+	return GetPublicCompaniesWithHeaders(map[string]string{}, map[string]string{})
+}
 
-	req, err := http.NewRequest("GET", iexSymbolsURL, nil)
+// GetPublicCompanies returns a list of public companies.
+// The query parameter should include a key 'token' with a value for authentication purposes.
+func GetPublicCompaniesWithHeaders(queryParameters map[string]string, headers map[string]string) ([]Company, error) {
+
+	if queryParameters["token"] == "" {
+		return nil, fmt.Errorf("To access the endpoint at https://api.iex.cloud, you must include the 'token' in the query parameters.")
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	parameters := url.Values{}
+	for k, v := range queryParameters {
+		parameters.Add(k, v)
+	}
+
+	req, err := http.NewRequest("GET", iexSymbolsURL + "?" + parameters.Encode(), nil)
 	if err != nil {
 		return []Company{}, err
 	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 
-	resp, err := http.DefaultClient.Do(req)
+	var result []Company
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return []Company{}, err
 	}
 	defer resp.Body.Close()
 
-	r := csv.NewReader(resp.Body)
-	r.FieldsPerRecord = -1
-	table, err := r.ReadAll()
-	result := []Company{}
-	for _, row := range table {
-		sym := row[0]
-		nme := row[1]
-		if len(sym) > 5 || nme == "" {
-			continue
-		}
-		result = append(result, Company{
-			Symbol: sym,
-			Name:   nme,
-		})
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return nil, fmt.Errorf("error reading response body: %s", err)
+	}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return nil, fmt.Errorf("error unmarshaling JSON: %s", string(body))
 	}
 	return result, nil
 }
 
 // GetFiler gets a single filer from the SEC website based on symbol.
 func GetFiler(symbol string) (filer *model.Filer, err error) {
+	return GetFilerWithHeaders(symbol, map[string]string{})
+}
+
+// GetFilerWithHeaders gets a single filer from the SEC website based on symbol, adding the given HTTP headers to the request.
+func GetFilerWithHeaders(symbol string, headers map[string]string) (filer *model.Filer, err error) {
+
 	// get the cik for each symbol.
 	// tedious process...
 	url := fmt.Sprintf(secCompanyURL, symbol)
+	client := &http.Client{Timeout: 10 * time.Second}
 
-	httpClient := http.Client{Timeout: 10 * time.Second}
-	resp, err := httpClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-
 	var feed rssFeed
 	decoder := xml.NewDecoder(resp.Body)
 	decoder.CharsetReader = charset.NewReaderLabel
@@ -97,7 +145,6 @@ func GetFiler(symbol string) (filer *model.Filer, err error) {
 	if err != nil {
 		return
 	}
-
 	if feed.Info.CIK == "" {
 		err = fmt.Errorf("no cik found in response data")
 		return
@@ -106,7 +153,6 @@ func GetFiler(symbol string) (filer *model.Filer, err error) {
 		err = fmt.Errorf("no name found in response data")
 		return
 	}
-
 	return &model.Filer{
 		CIK:            feed.Info.CIK,
 		Symbol:         symbol,
